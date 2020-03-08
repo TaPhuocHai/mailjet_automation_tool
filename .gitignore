@@ -1,0 +1,8 @@
+.vscode
+ematic_env/*
+.env
+history.txt
+output/*
+input/*
+library/__pycache__
+*.pyc
