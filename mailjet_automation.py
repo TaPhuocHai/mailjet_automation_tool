@@ -20,7 +20,7 @@ OUTPUT_DIR_NAME = 'output'
 # Constants, global variables
 # NEW_DATA represent the data we want to check quality and do cleaning up
 # You should have such file in input directory
-NEW_DATA = "new_data.csv" # you should change name accordingly, excel or csv is okay!
+NEW_DATA = "wse_270k_data.csv" # you should change name accordingly, excel or csv is okay!
 
 # Credentials
 CSE_EMAIL = os.getenv("CSE_EMAIL") 
@@ -166,7 +166,7 @@ def upload_cse():
     print('✔ Clean results downloaded.');        
 
 def getDvScore():
-    spinner = Halo(text="Validating the cleaned data by cse2 tool", spinner='dots', text_color="grey")
+    spinner = Halo(text="Checking dv score  of the cleaned data by cse2 tool", spinner='dots', text_color="grey")
     spinner.start()
         
     file = NEW_DATA.split(".")[0] + "_to_cse2_out.csv"
@@ -189,11 +189,10 @@ def getDvScore():
 
     percent = lambda count: round((count / dv_result['subscriber_count']),2) * 100
     
-    spinner.succeed("Done validation")
+    spinner.succeed("Done checking dv score")
     print("The grade summary is: ")
     for score_name, score_value in dv_result['grade_summary'].items():
-        # print('  ',score_name, ': ', percent(score_value))
-        print('%-3s : %s' %(score_name, percent(score_value)))
+        print('%-3s : ' %(score_name) + str(percent(score_value)))
 
 
 if __name__ == "__main__":
@@ -264,4 +263,3 @@ if __name__ == "__main__":
     upload_cse()
     getDvScore()
     spinner.succeed("Program completed!")
-
