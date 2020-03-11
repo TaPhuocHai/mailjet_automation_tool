@@ -20,7 +20,7 @@ OUTPUT_DIR_NAME = 'output'
 # Constants, global variables
 # NEW_DATA represent the data we want to check quality and do cleaning up
 # You should have such file in input directory
-NEW_DATA = "wse_270k_data.csv" # you should change name accordingly, excel or csv is okay!
+NEW_DATA = "Email -1103.xlsx" # you should change name accordingly, excel or csv is okay!
 
 # Credentials
 CSE_EMAIL = os.getenv("CSE_EMAIL") 
@@ -82,11 +82,12 @@ def clean_data(current_users):
     sample_bad_emails = pd.read_csv("bad_emails.csv")
     new_users['Domain'] = new_users['Email'].str.split('@').str[1]
     merged = sample_bad_emails.merge(new_users, how="right", indicator=True, on="Domain")
-    good_emails = merged[merged['_merge']=='right_only']    
+    good_emails = merged[merged['_merge']=='right_only']
     print("Number of user after remove blacklisted domain: ", len(good_emails))
     good_emails = good_emails['Email']
     good_emails.to_csv(OUTPUT_DIR_NAME + "/" + file_name + "_to_cse2.csv", index=False, header=True)
-
+    bad_emails  = merged[merged['_merge']=='both']
+    bad_emails.to_csv(OUTPUT_DIR_NAME + "/" + file_name + "_blacklisted.csv", index=False, header=True, columns=["Email", "Domain"])
 
 def upload_cse():
     # login to cse tool
