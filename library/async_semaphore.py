@@ -40,7 +40,7 @@ async def getContacts(r, API_KEY, API_SECRET):
     generate_url = lambda offset: "https://api.mailjet.com/v3/REST/contact/?limit=" +str(LIMIT) + "&offset=" + str(offset)
     
     tasks = []
-    sem = asyncio.Semaphore(5) # safe number of concurrent requests
+    sem = asyncio.Semaphore(20) # safe number of concurrent requests
     auth = aiohttp.BasicAuth(API_KEY, API_SECRET)
     async with aiohttp.ClientSession(headers={"Connection": "close"}) as session:
         
@@ -62,7 +62,7 @@ async def getRecipients(r, API_KEY, API_SECRET):
     generate_url = lambda offset: "https://api.mailjet.com/v3/REST/listrecipient/?limit=" +str(LIMIT) + "&offset=" + str(offset)
     
     tasks = []
-    sem = asyncio.Semaphore(5) # safe number of concurrent requests
+    sem = asyncio.Semaphore(20) # safe number of concurrent requests
     auth = aiohttp.BasicAuth(API_KEY, API_SECRET)
     async with aiohttp.ClientSession(headers={"Connection": "close"}) as session:
         while offset < r:
