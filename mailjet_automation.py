@@ -20,7 +20,7 @@ OUTPUT_DIR_NAME = 'output'
 # Constants, global variables
 # NEW_DATA represent the data we want to check quality and do cleaning up
 # You should have such file in input directory
-NEW_DATA = "Email -1103.xlsx" # you should change name accordingly, excel or csv is okay!
+NEW_DATA = "Webinar_-_1903_-_email.xlsx" # you should change name accordingly, excel or csv is okay!
 
 # Credentials
 CSE_EMAIL = os.getenv("CSE_EMAIL") 
@@ -187,14 +187,19 @@ def getDvScore():
         spinner.info("Status percent complete: " + str(dv_result['status_percent_complete']))
         # print("Status : ", dv_result['status_value'])
         time.sleep(5) # sleep 5 seconds
-
-    percent = lambda count: round((count / dv_result['subscriber_count']),2) * 100
-    
-    spinner.succeed("Done checking dv score")
-    print("The grade summary is: ")
-    for score_name, score_value in dv_result['grade_summary'].items():
-        print('%-3s : ' %(score_name) + str(percent(score_value)))
-
+    try:
+        percent = lambda count: round((count / dv_result['subscriber_count']),2) * 100
+        
+        spinner.succeed("Done checking dv score")
+        print("The grade summary is: ")
+        for score_name, score_value in dv_result['grade_summary'].items():
+            print('%-3s : ' %(score_name) + str(percent(score_value)))
+    except:
+        if (dv_result['subscriber_count'] == 0):
+            print("Empty list of emails were sent for dv validation!")
+            print("Perhaps no new email to check dv?")
+            print("Program terminated")
+            return 0
 
 if __name__ == "__main__":
     # ## Select account    
