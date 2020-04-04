@@ -20,7 +20,7 @@ OUTPUT_DIR_NAME = 'output'
 # Constants, global variables
 # NEW_DATA represent the data we want to check quality and do cleaning up
 # You should have such file in input directory
-NEW_DATA = "Webinar_-_1903_-_email.xlsx" # you should change name accordingly, excel or csv is okay!
+NEW_DATA = "Email.xlsx" # you should change name accordingly, excel or csv is okay!
 
 # Credentials
 CSE_EMAIL = os.getenv("CSE_EMAIL") 
@@ -91,7 +91,11 @@ def clean_data(current_users):
 
 def upload_cse():
     # login to cse tool
-    res = requests.get('https://cse-prod2.ematicsolutions.com/login')
+    s = requests.Session()
+    a = requests.adapters.HTTPAdapter(max_retries=5)
+    s.mount("https://", a)
+    # res = requests.get('https://cse-prod2.ematicsolutions.com/login')
+    res = s.get('https://cse-prod2.ematicsolutions.com/login')
     cookies = res.cookies
     soup = BeautifulSoup(res.content, 'html.parser')
     tag = soup.body.find("input", {"name":"_token"})
@@ -112,8 +116,9 @@ def upload_cse():
         exit()
 
     cookies = response.cookies
-    res = requests.get("https://cse-prod2.ematicsolutions.com/cleaned-emails-scan/create", 
-                    cookies=cookies)
+    # res = requests.get("https://cse-prod2.ematicsolutions.com/cleaned-emails-scan/create", 
+    #                 cookies=cookies)
+    res = s.get("https://cse-prod2.ematicsolutions.com/cleaned-emails-scan/create", cookies=cookies)
     cookies = res.cookies
     soup = BeautifulSoup(res.content, 'html.parser')
     token = soup.body.find("input", {"name":"_token"}).attrs['value']
@@ -174,14 +179,20 @@ def getDvScore():
     url = 'https://dv3.datavalidation.com/api/v2/user/me/list/create_upload_url/'
     params = '?name=' + file + '&email_column_index=0&has_header=0&start_validation=false'     
     headers = { 'Authorization': 'Bearer ' + DV_API_KEY }
-    res = requests.get(url+params, headers=headers)
+    s = requests.Session()
+    a = requests.adapters.HTTPAdapter(max_retries=3)
+    s.mount("https://", a)    
+    # res = requests.get(url+params, headers=headers)
+    res = s.get(url+params, headers=headers)
     upload_csv_url = res.json()    
     files = {
         'file': open(OUTPUT_DIR_NAME + "/" + file, 'rb')
     }
-    list_id = requests.post(upload_csv_url, headers=headers, files=files)
+    # list_id = requests.post(upload_csv_url, headers=headers, files=files)
+    list_id = s.post(upload_csv_url, headers=headers, files=files)
     dv_result_url = 'https://dv3.datavalidation.com/api/v2/user/me/list/' + list_id.json()
-    dv_result = requests.get(dv_result_url, headers=headers).json()
+    # dv_result = requests.get(dv_result_url, headers=headers).json()
+    dv_result = s.get(dv_result_url, headers=headers).json()
     while dv_result['status_value'] == 'PRE_VALIDATING':
         dv_result = requests.get(dv_result_url, headers=headers).json()
         spinner.info("Status percent complete: " + str(dv_result['status_percent_complete']))
@@ -202,6 +213,9 @@ def getDvScore():
             return 0
 
 if __name__ == "__main__":
+    # turn on vpn
+    os.system("nmcli connection up ematic")
+
     # ## Select account    
     env_file = open(".env", mode="r")
     env_data = env_file.readlines()    
@@ -209,13 +223,20 @@ if __name__ == "__main__":
     if exit_code == -1:
         exit(code=-1)
 
-    API_KEY, API_SECRET = account['api_key'], account['api_secret']    
+    API_KEY, API_SECRET = account['api_key'], account['api_secret']
+    # turn off vpn
+    os.system("nmcli connection down ematic")
+
     # ## Fetching the contacts    
     t = Timer(name="class", text="Time to fetch the contacts: {seconds:.1f} seconds")
     spinner = Halo(text="Fetching contacts via API ..", spinner='dots', text_color="grey")
     spinner.start()        
     t.start()
-    res = requests.get("https://api.mailjet.com/v3/REST/contact/?countOnly=1", auth=(API_KEY, API_SECRET))
+    s = requests.Session()
+    a = requests.adapters.HTTPAdapter(max_retries=3)
+    s.mount("https://", a)    
+    # res = requests.get("https://api.mailjet.com/v3/REST/contact/?countOnly=1", auth=(API_KEY, API_SECRET))
+    res  = s.get("https://api.mailjet.com/v3/REST/contact/?countOnly=1", auth=(API_KEY, API_SECRET))
     if res.status_code != 200:
         print("Something went wrong. ")
         print("Response status code: ", res.status_code)
@@ -225,7 +246,11 @@ if __name__ == "__main__":
         no_calls = res.json()['Count']
     asyncio.run(getContacts(no_calls, API_KEY, API_SECRET))
 
-    res = requests.get("https://api.mailjet.com/v3/REST/listrecipient/?countOnly=1", auth=(API_KEY, API_SECRET))
+    s = requests.Session()
+    a = requests.adapters.HTTPAdapter(max_retries=3)
+    s.mount("https://", a)    
+    res  = s.get("https://api.mailjet.com/v3/REST/listrecipient/?countOnly=1", auth=(API_KEY, API_SECRET))
+    # res = requests.get("https://api.mailjet.com/v3/REST/listrecipient/?countOnly=1", auth=(API_KEY, API_SECRET))
     if res.status_code != 200:
         print("Something went wrong. ")
         print("Response status code: ", res.status_code)
@@ -256,8 +281,8 @@ if __name__ == "__main__":
         "Status": "excluded"
         })
 
-
-    contacts["Status"]  =  contacts.apply(checkStatus, axis = 1)
+    contacts.to_csv(OUTPUT_DIR_NAME + "/current_mj_db.csv",index=False)
+    contacts["Status"]  =  contacts["Email"].apply(checkStatus, axis = 1)
     contacts = contacts[['Email', "Status"]]
     contacts = contacts.append(excluded_df)
 
@@ -266,6 +291,11 @@ if __name__ == "__main__":
     spinner.succeed(text="Done processing the data")
     # contacts = pd.read_csv("data.csv")
     clean_data(contacts)
+
+    # turn on vpn
+    os.system("nmcli connection up ematic")
     upload_cse()
+    # turn off vpn
+    os.system("nmcli connection down ematic")    
     getDvScore()
     spinner.succeed("Program completed!")

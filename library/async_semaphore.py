@@ -37,12 +37,13 @@ async def getContacts(r, API_KEY, API_SECRET):
     
     LIMIT = 1000
     offset = 0
-    generate_url = lambda offset: "https://api.mailjet.com/v3/REST/contact/?limit=" +str(LIMIT) + "&offset=" + str(offset)
+    generate_url = lambda offset: "https://api.mailjet.com/v3/REST/contact/?limit=" +str(LIMIT) + "&offset=" + str(offset) + "&Campaign=10374313"
     
     tasks = []
     sem = asyncio.Semaphore(20) # safe number of concurrent requests
     auth = aiohttp.BasicAuth(API_KEY, API_SECRET)
-    async with aiohttp.ClientSession(headers={"Connection": "close"}) as session:
+    conn = aiohttp.TCPConnector(verify_ssl=False)
+    async with aiohttp.ClientSession(headers={"Connection": "close"}, connector=conn) as session:
         
         while offset < r:
             task = asyncio.ensure_future(boundFetchContacts(sem, generate_url(offset),session, auth))
