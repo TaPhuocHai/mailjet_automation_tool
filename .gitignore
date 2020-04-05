@@ -6,3 +6,4 @@ output/*
 input/*
 library/__pycache__
 *.pyc
+retrive_contacts.py
