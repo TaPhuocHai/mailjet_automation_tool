@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 import pandas as pd 
 import time
 import os
-
+from test_platform import *
 # Default directories where input and output data located
 
 load_dotenv()
@@ -20,7 +20,7 @@ OUTPUT_DIR_NAME = 'output'
 # Constants, global variables
 # NEW_DATA represent the data we want to check quality and do cleaning up
 # You should have such file in input directory
-NEW_DATA = "Email.xlsx" # you should change name accordingly, excel or csv is okay!
+NEW_DATA = "Email_-_010420.xlsx" # you should change name accordingly, excel or csv is okay!
 
 # Credentials
 CSE_EMAIL = os.getenv("CSE_EMAIL") 
@@ -214,7 +214,10 @@ def getDvScore():
 
 if __name__ == "__main__":
     # turn on vpn
-    os.system("nmcli connection up ematic")
+    # os.system("nmcli connection up ematic")
+    connectVPN()
+    time.sleep(20)
+    print()
 
     # ## Select account    
     env_file = open(".env", mode="r")
@@ -225,7 +228,7 @@ if __name__ == "__main__":
 
     API_KEY, API_SECRET = account['api_key'], account['api_secret']
     # turn off vpn
-    os.system("nmcli connection down ematic")
+    disconnectVPN()
 
     # ## Fetching the contacts    
     t = Timer(name="class", text="Time to fetch the contacts: {seconds:.1f} seconds")
@@ -282,20 +285,21 @@ if __name__ == "__main__":
         })
 
     contacts.to_csv(OUTPUT_DIR_NAME + "/current_mj_db.csv",index=False)
-    contacts["Status"]  =  contacts["Email"].apply(checkStatus, axis = 1)
+    contacts["Status"]  =  contacts["IsUnsubscribed"].apply(checkStatus)
     contacts = contacts[['Email', "Status"]]
     contacts = contacts.append(excluded_df)
 
     contacts.to_csv(OUTPUT_DIR_NAME + "/current_mj_db.csv",index=False)
 
     spinner.succeed(text="Done processing the data")
-    # contacts = pd.read_csv("data.csv")
+
     clean_data(contacts)
 
     # turn on vpn
-    os.system("nmcli connection up ematic")
+    connectVPN()
+    time.sleep(20)
     upload_cse()
     # turn off vpn
-    os.system("nmcli connection down ematic")    
+    disconnectVPN()
     getDvScore()
     spinner.succeed("Program completed!")
