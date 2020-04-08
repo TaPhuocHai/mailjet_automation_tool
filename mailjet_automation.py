@@ -20,7 +20,7 @@ OUTPUT_DIR_NAME = 'output'
 # Constants, global variables
 # NEW_DATA represent the data we want to check quality and do cleaning up
 # You should have such file in input directory
-NEW_DATA = "Email_-_010420.xlsx" # you should change name accordingly, excel or csv is okay!
+NEW_DATA = "" # you should change name accordingly, excel or csv is okay!
 
 # Credentials
 CSE_EMAIL = os.getenv("CSE_EMAIL") 
@@ -93,8 +93,7 @@ def upload_cse():
     # login to cse tool
     s = requests.Session()
     a = requests.adapters.HTTPAdapter(max_retries=5)
-    s.mount("https://", a)
-    # res = requests.get('https://cse-prod2.ematicsolutions.com/login')
+    s.mount("https://", a)    
     res = s.get('https://cse-prod2.ematicsolutions.com/login')
     cookies = res.cookies
     soup = BeautifulSoup(res.content, 'html.parser')
@@ -116,8 +115,6 @@ def upload_cse():
         exit()
 
     cookies = response.cookies
-    # res = requests.get("https://cse-prod2.ematicsolutions.com/cleaned-emails-scan/create", 
-    #                 cookies=cookies)
     res = s.get("https://cse-prod2.ematicsolutions.com/cleaned-emails-scan/create", cookies=cookies)
     cookies = res.cookies
     soup = BeautifulSoup(res.content, 'html.parser')
@@ -182,7 +179,6 @@ def getDvScore():
     s = requests.Session()
     a = requests.adapters.HTTPAdapter(max_retries=3)
     s.mount("https://", a)    
-    # res = requests.get(url+params, headers=headers)
     res = s.get(url+params, headers=headers)
     upload_csv_url = res.json()    
     files = {
@@ -196,7 +192,6 @@ def getDvScore():
     while dv_result['status_value'] == 'PRE_VALIDATING':
         dv_result = requests.get(dv_result_url, headers=headers).json()
         spinner.info("Status percent complete: " + str(dv_result['status_percent_complete']))
-        # print("Status : ", dv_result['status_value'])
         time.sleep(5) # sleep 5 seconds
     try:
         percent = lambda count: round((count / dv_result['subscriber_count']),2) * 100
@@ -213,13 +208,12 @@ def getDvScore():
             return 0
 
 if __name__ == "__main__":
-    # turn on vpn
-    # os.system("nmcli connection up ematic")
+    # turn on vpn    
     connectVPN()
     time.sleep(20)
     print()
 
-    # ## Select account    
+    # Select account    
     env_file = open(".env", mode="r")
     env_data = env_file.readlines()    
     exit_code, account = choose_account(HIIQ_API_KEY, HIIQ_URL)
@@ -238,7 +232,6 @@ if __name__ == "__main__":
     s = requests.Session()
     a = requests.adapters.HTTPAdapter(max_retries=3)
     s.mount("https://", a)    
-    # res = requests.get("https://api.mailjet.com/v3/REST/contact/?countOnly=1", auth=(API_KEY, API_SECRET))
     res  = s.get("https://api.mailjet.com/v3/REST/contact/?countOnly=1", auth=(API_KEY, API_SECRET))
     if res.status_code != 200:
         print("Something went wrong. ")
@@ -253,7 +246,6 @@ if __name__ == "__main__":
     a = requests.adapters.HTTPAdapter(max_retries=3)
     s.mount("https://", a)    
     res  = s.get("https://api.mailjet.com/v3/REST/listrecipient/?countOnly=1", auth=(API_KEY, API_SECRET))
-    # res = requests.get("https://api.mailjet.com/v3/REST/listrecipient/?countOnly=1", auth=(API_KEY, API_SECRET))
     if res.status_code != 200:
         print("Something went wrong. ")
         print("Response status code: ", res.status_code)
@@ -268,16 +260,12 @@ if __name__ == "__main__":
     t.stop()
 
     spinner.start("Processing the data")
-    contact_list = pd.DataFrame(data=CONTACT_LIST, columns=["Email", "ID", "IsExcludedFromCampaigns"]) #.to_csv("contact_list_1.csv")
-
+    contact_list = pd.DataFrame(data=CONTACT_LIST, columns=["Email", "ID", "IsExcludedFromCampaigns"])
     recipient_list = pd.DataFrame(data=RECIPIENT_LIST, columns =["ID", "IsUnsubscribed", "ListName"])
-
-
     contact_list["ID"] = contact_list["ID"].astype(int)
     recipient_list["ID"] = recipient_list["ID"].astype(int)
-
+    
     contacts  = recipient_list.merge(contact_list, on="ID", indicator=True)
-
 
     excluded_df = pd.DataFrame({
         "Email": contact_list[contact_list['IsExcludedFromCampaigns']==True]['Email'], 
@@ -303,3 +291,7 @@ if __name__ == "__main__":
     disconnectVPN()
     getDvScore()
     spinner.succeed("Program completed!")
+
+    # This block can be commented/removed if you don't want to connect VPN again
+    print("Reconnecting to VPN again")
+    connectVPN()

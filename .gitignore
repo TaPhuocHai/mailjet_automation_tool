@@ -7,3 +7,7 @@ input/*
 library/__pycache__
 *.pyc
 retrive_contacts.py
+input/*
+output/*
+!input/.gitkeep
+!output/.gitkeep

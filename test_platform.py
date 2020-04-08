@@ -3,6 +3,13 @@ import os
 import urllib.request
 import subprocess
 import time
+from dotenv import load_dotenv
+
+load_dotenv()
+
+VPN = os.getenv("VPN")  # your vpn name
+
+
 
 """
 Reference to MacOs/Unix 
@@ -21,25 +28,24 @@ def check_connectivity(reference):
 
 
 def connectVPN():
-    print("Attempting to connect to Ematic VPN automatically")
+    print("Attempting to connect to %s VPN automatically" %(VPN))
     if platform.system() == "Windows":
-        cmd = r'"c:\Program Files\OpenVPN\bin\openvpn-gui.exe" --command connect ematic'
+        cmd = r'"c:\Program Files\OpenVPN\bin\openvpn-gui.exe" --command connect %s' %(VPN)
         # return os.system(cmd)
         return subprocess.check_call(cmd)
     elif platform.system() == "Darwin":
-        return os.system("networksetup -connectpppoeservice ematic") 
+        return os.system("networksetup -connectpppoeservice %s" %(VPN)) 
     elif platform.system() == "Linux":
-        return os.system("nmcli connection up ematic")
+        return os.system("nmcli connection up %s" %(VPN)) 
 
 
 def disconnectVPN():
-    print("Attempting to disconnect to Ematic VPN automatically")
+    print("Attempting to connect to %s VPN automatically" %(VPN))
     if platform.system() == "Windows":
-        cmd = r'"c:\Program Files\OpenVPN\bin\openvpn-gui.exe" --command disconnect ematic'
+        cmd = r'"c:\Program Files\OpenVPN\bin\openvpn-gui.exe" --command disconnect %s' %(VPN)
         os.system(cmd)
     elif platform.system() == "Darwin": # https://www.unix.com/man-page/mojave/8/networksetup/
-        os.system("networksetup -disconnectpppoeservice ematic")
+        os.system("networksetup -disconnectpppoeservice %s" %(VPN)) 
     elif platform.system() == "Linux":
-        os.system("nmcli connection down ematic")
-
+        os.system("nmcli connection down %s" %(VPN))
 

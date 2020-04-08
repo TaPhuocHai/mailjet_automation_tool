@@ -26,3 +26,11 @@ In the input folder, place the data in csv or excel format (xlsx, xls). Then ope
 
 Open our VPN connection and run 
 > python mailjet_automation.py
+
+## Update functionality:
+
+- 2020-04-08:
+  - Autoconnection to VPN: The programs will automatically connect VPN for you. 
+
+All you need to do is to configure the correct name of your VPN connection. 
+Please change the value of the constant VPN in the test_platform.py file to the correct.
