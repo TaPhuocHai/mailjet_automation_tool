@@ -33,4 +33,4 @@ Open our VPN connection and run
   - Autoconnection to VPN: The programs will automatically connect VPN for you. 
 
 All you need to do is to configure the correct name of your VPN connection. 
-Please change the value of the constant VPN in the test_platform.py file to the correct.
+Please change the value of the constant VPN in the .env file to the correct name.
