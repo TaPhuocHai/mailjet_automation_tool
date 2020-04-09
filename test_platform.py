@@ -40,7 +40,7 @@ def connectVPN():
 
 
 def disconnectVPN():
-    print("Attempting to connect to %s VPN automatically" %(VPN))
+    print("Attempting to disconnect to %s VPN automatically" %(VPN))
     if platform.system() == "Windows":
         cmd = r'"c:\Program Files\OpenVPN\bin\openvpn-gui.exe" --command disconnect %s' %(VPN)
         os.system(cmd)
