@@ -11,3 +11,6 @@ input/*
 output/*
 !input/.gitkeep
 !output/.gitkeep
+campaign_nondeliveries-spam/*
+!campaign_nondeliveries-spam/.gitignore
+api.json
