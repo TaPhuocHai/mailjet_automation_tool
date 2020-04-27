@@ -49,6 +49,10 @@ for account in selected_accounts:
         campaign_ids.append(campaign["ID"])
     print("Found these campaigns: ", campaign_ids)
 
+    if len(campaign_ids) == 0:
+        print("No campaigns were found/sent. Program moves on to the next account!")
+        continue # skip to other account since no campaigns found in the current account
+
     with pd.ExcelWriter(f_name) as writer:
         for campaign_id in campaign_ids:
             ### Fetching the contacts    
